@@ -11,7 +11,6 @@
     (() "aA" "oO" "eE" "uU" "iI" "dD" "hH" "tT" "nN" "sS" "-_")
     (() ";:" "qQ" "jJ" "kK" "xX" "bB" "mM" "wW" "vV" "zZ")))
 
-
 (define keypad
   '((() "/" "*" "-")
     ("7" "8" "9" "+")
@@ -90,7 +89,7 @@
          [token-char0 (string->list (caar graph))]
          [token-char0-len (length token-char0)])
     (unless (for-all (lambda (x) (= token-char0-len (length (string->list (car x))))) graph)
-      (assertion-violation "build-graph-dup" "not all tokens have same number of characters"))
+      (assertion-violation "build-graph" "not all tokens have same number of characters"))
     (cond [(= token-char0-len 1) graph]
           [(= token-char0-len 2)
            (apply append
@@ -101,7 +100,7 @@
                        graph))]
           [else
            (assertion-violation
-            "build-graph-dup"
+            "build-graph"
             "token should have only 1 or 2 characters")])))
 
 (define adjacency-graphs
