@@ -86,17 +86,16 @@
 ;; split key tokens and duplicate list of adjacent keys (where necessary)
 (define (build-graph layout slanted)
   (let* ([graph (build-graph-helper layout slanted)]
-         [token-char0 (string->list (caar graph))]
-         [token-char0-len (length token-char0)])
-    (unless (for-all (lambda (x) (= token-char0-len (length (string->list (car x))))) graph)
+         [first-token-len (string-length (caar graph))])
+    (unless (for-all (lambda (x) (= first-token-len (string-length (car x)))) graph)
       (assertion-violation "build-graph" "not all tokens have same number of characters"))
-    (cond [(= token-char0-len 1) graph]
-          [(= token-char0-len 2)
+    (cond [(= first-token-len 1) graph]
+          [(= first-token-len 2)
            (apply append
                   (map (lambda (lst)
-                         (let* ([token-char (string->list (car lst))])
-                           (list (cons (string (car token-char)) (cdr lst))
-                                 (cons (string (cadr token-char)) (cdr lst)))))
+                         (let* ([token-char-lst (string->list (car lst))])
+                           (list (cons (string (car token-char-lst)) (cdr lst))
+                                 (cons (string (cadr token-char-lst)) (cdr lst)))))
                        graph))]
           [else
            (assertion-violation
