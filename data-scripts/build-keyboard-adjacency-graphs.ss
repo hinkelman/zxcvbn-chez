@@ -1,3 +1,11 @@
+#!/usr/bin/env scheme-script
+;; -*- mode: scheme; coding: utf-8 -*- !#
+;; Copyright (c) 2020 Travis Hinkelman
+;; SPDX-License-Identifier: MIT
+#!r6rs
+
+;; run this script with the following line in the terminal
+;; scheme ~/data-scripts/build-keyboard-adjacency-graphs.ss
 
 (define qwerty
   '(("`~" "1!" "2@" "3#" "4$" "5%" "6^" "7&" "8*" "9(" "0)" "-_" "=+")
@@ -110,6 +118,8 @@
    (list "keypad-mac" (build-graph keypad-mac #f))))
 
 (with-output-to-file "adjacency-graphs.scm" (lambda () (write adjacency-graphs)))
+
+(exit)
 
 
         
