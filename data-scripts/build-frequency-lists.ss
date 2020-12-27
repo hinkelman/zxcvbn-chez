@@ -57,12 +57,6 @@
                           '()]))
                  filenames file-roots))))
 
-;;(list-head (cadr (assoc "surnames" (parse-frequency-lists "data"))) 10)
-
-;; (define freq-lists-test (list (list "x" (list (cons "AB" 100) (cons "E" 2) (cons "B" 3)))
-;;                               (list "y" (list (cons "E" 1) (cons "D" 2) (cons "C" 3)))))
-;; (define freq-lists (parse-frequency-lists "data"))
-
 (define (is-rare-and-short token rank)
   (>= rank (expt 10 (string-length token))))
 
@@ -75,15 +69,12 @@
                          (cadr (assoc name freq-lists)))))
          freq-names)))
 
-;; (define (get-token-pair freq-lists name token)
-;;   (assoc token (cadr (assoc name freq-lists))))
-
 ;; transform pairs into lists where the last element is the dictionary name
 (define (transform freq-lists name)
   (let ([lst (cadr (assoc name freq-lists))])
     (map (lambda (pair) (list (car pair) (cdr pair) name)) lst)))
 
-;; sort by token after transforming and combing all dictionaries into one list
+;; sort by token after transforming and appending all dictionaries into one list
 (define (transform-append-sort freq-lists)
   (let ([freq-names (map car freq-lists)])
     (sort (lambda (x y) (string<? (car x) (car y)))
