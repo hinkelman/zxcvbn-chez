@@ -140,6 +140,7 @@
         (back-transform freq-names)
         (filter-cutoff-limit dictionaries))))
 
-(with-output-to-file "frequency-lists.scm" (lambda () (write frequency-lists)))
+(with-output-to-file "frequency-lists.scm"
+  (lambda () (write `(define frequency-lists ',frequency-lists))))
 
 (exit)

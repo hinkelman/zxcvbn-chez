@@ -110,17 +110,13 @@
             "build-graph"
             "token should have only 1 or 2 characters")])))
 
-(define adjacency-graphs
-  (list
-   (list "qwerty" (build-graph qwerty #t))
-   (list "dvorak" (build-graph dvorak #t))
-   (list "keypad" (build-graph keypad #f))
-   (list "keypad-mac" (build-graph keypad-mac #f))))
-
-(with-output-to-file "adjacency-graphs.scm" (lambda () (write adjacency-graphs)))
+(with-output-to-file "adjacency-graphs.scm"
+  (lambda () (write
+              `(define adjacency-graphs
+                 '(,(list "qwerty" (build-graph qwerty #t))
+                   ,(list "dvorak" (build-graph dvorak #t))
+                   ,(list "keypad" (build-graph keypad #f))
+                   ,(list "keypad-mac" (build-graph keypad-mac #f)))))))
 
 (exit)
 
-
-        
-    
