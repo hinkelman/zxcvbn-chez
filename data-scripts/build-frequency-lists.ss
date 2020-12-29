@@ -140,7 +140,7 @@
         (back-transform freq-names)
         (filter-cutoff-limit dictionaries))))
 
-(with-output-to-file "frequency-lists.scm"
+(with-output-to-file (string-append "zxcvbn" (string (directory-separator)) "frequency-lists.scm")
   (lambda () (write `(define frequency-lists ',frequency-lists))))
 
 (exit)

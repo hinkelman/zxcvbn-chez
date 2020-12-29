@@ -110,7 +110,7 @@
             "build-graph"
             "token should have only 1 or 2 characters")])))
 
-(with-output-to-file "adjacency-graphs.scm"
+(with-output-to-file (string-append "zxcvbn" (string (directory-separator)) "adjacency-graphs.scm")
   (lambda () (write
               `(define adjacency-graphs
                  '(,(list "qwerty" (build-graph qwerty #t))
