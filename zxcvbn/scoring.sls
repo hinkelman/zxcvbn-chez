@@ -8,6 +8,7 @@
   (define min-guesses-before-growing-sequence 10000)
   (define min-submatch-guesses-single-char 10)
   (define min-submatch-guesses-multi-char 50)
+  (define reference-year (date-year (current-date)))
 
   ;; '(("qwerty" '(("`" (() () () "1!" () ()))...) "keypad" '((...))))
   (define (calc-average-degree data name)

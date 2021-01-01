@@ -2,10 +2,15 @@
   (export zxcvbn)
 
   (import (chezscheme)
-          (zxcvbn time-estimates)
-          (zxcvbn scoring))
+          (zxcvbn feedback)
+          (zxcvbn matching)
+          (zxcvbn scoring)
+          (zxcvbn time-estimates))
 
-  (define (zxcvbn) (display "I need to write all of this code."))
+  ;; (define start (current-time))
+  ;; (time-second (time-difference (current-time) start))
+  
+  (define (zxcvbn) (display "Writing libraries first."))
       
   )
 
