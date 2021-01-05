@@ -2,8 +2,9 @@
 (import (akku format manifest))
 
 (akku-package ("zxcvbn-chez" "0.0.1")
-  (synopsis "Port of Dropbox's password strength estimator, zxcvbn, to Chez Scheme.")
+  (synopsis
+   "Port of Dropbox's password strength estimator, zxcvbn, to Chez Scheme.")
   (authors "Travis Hinkelman")
   (license "MIT")
-  (depends ("chez-srfi" "^0.0.0-akku.181.7879b52"))
+  (depends ("wak-irregex" "^0.8.1") ("chez-srfi" "^0.0.0-akku.181.7879b52"))
 )
