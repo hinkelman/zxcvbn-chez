@@ -38,41 +38,40 @@
   (define date-min-year 1000)
 
   (define (dictionary-match password ranked-dict)
-    (let* ([password-lower (string-downcase password)]
-           [password-list (string->list password-lower)]
-           [password-length (length password-list)]
-           [dict-names (map car ranked-dict)])
-     ;; (sort-match
+    (let ([dict-names (map car ranked-dict)])
+      (sort-match
        (apply append
               (map (lambda (dict-name)
-                     (let loop ([lst password-list]
-                                [i 0]
-                                [out '()])
-                       (if (null? lst)
-                           out
-                           (let* ([dict-list (cadr (assoc dict-name ranked-dict))]
-                                  [dict-match (dictionary-match-helper lst i dict-name dict-list)])
-                             (if (null? dict-match)
-                                 (loop (cdr lst) (add1 i) out)
-                                 (loop (cdr lst) (add1 i) (append dict-match out)))))))
-                   dict-names))))
-
-  (define (dictionary-match-helper password-list i dict-name dict-list)
-    (let loop ([lst (reverse password-list)]
-               [h (sub1 (length password-list))]
-               [out '()])
-      (if (null? lst)
-          out
-          ;; dropping letters off of end of lst (via reverse)
-          ;; and counting from end of lst (by setting h to length and sub1)
-          (let* ([token (list->string (reverse lst))]
+                     (filter (lambda (x) (not (null? x)))
+                             (dictionary-match-helper password dict-name ranked-dict)))
+                   dict-names)))))
+  
+  ;; noticeable lag for longer passwords; need to convert ranked-dict to hashtable           
+  (define (dictionary-match-helper password dict-name ranked-dict)
+    (let* ([password-lower (string-downcase password)]
+           [password-vec (list->vector (string->list password-lower))]
+           [password-length (vector-length password-vec)]
+           [dict-list (cadr (assoc dict-name ranked-dict))]
+           [out-vec (make-vector (/ (* password-length (add1 password-length)) 2) '())]
+           [out-vec-i 0])
+      (do ((i 0 (add1 i)))
+          ((= i password-length))
+        (do ((j i (add1 j)))
+            ((= j password-length))
+          (let* ([token (list->string (slice password-vec i j))]
                  [word-pair (assoc token dict-list)])
-            (if word-pair
-                (loop (cdr lst) (sub1 h) (cons (create-match-element
-                                                "dictionary" i (+ i h) token (car word-pair)
-                                                (cdr word-pair) dict-name #f #f)
-                                               out))
-                (loop (cdr lst) (sub1 h) out))))))
+            (when word-pair
+              (vector-set! out-vec out-vec-i
+                           (create-match-element
+                            "dictionary" i j token (car word-pair)
+                            (cdr word-pair) dict-name #f #f)))
+            (set! out-vec-i (add1 out-vec-i)))))
+      (vector->list out-vec)))
+
+  ;; slice vector and return list
+  (define (slice vec lwr upr)
+    (let ([indices (map (lambda (x) (+ lwr x)) (iota (add1 (- upr lwr))))])
+      (map (lambda (x) (vector-ref vec x)) indices)))
 
   (define (create-match-element pattern i j token matched-word rank dict-name reversed l33t)
     (list (cons "pattern" pattern)
