@@ -11,11 +11,13 @@
 
   (define (build-ranked-dict freq-lists)
     (map (lambda (name)
-           (let ([lst (cadr (assoc name freq-lists))])
-             (list name
-                   (map (lambda (token rank)
-                          (cons token (add1 rank)))
-                        lst (iota (length lst))))))
+           (let* ([lst (cadr (assoc name freq-lists))]
+                  [ht (make-hashtable string-hash string=? (length lst))]
+                  [ranks (map add1 (iota (length lst)))])
+             (for-each (lambda (token rank)
+                         (hashtable-set! ht token rank))
+                       lst ranks)
+             (list name ht)))
          (map car freq-lists)))
 
   (define ranked-dictionaries (build-ranked-dict frequency-lists))
@@ -45,13 +47,12 @@
                      (filter (lambda (x) (not (null? x)))
                              (dictionary-match-helper password dict-name ranked-dict)))
                    dict-names)))))
-  
-  ;; noticeable lag for longer passwords; need to convert ranked-dict to hashtable           
+
   (define (dictionary-match-helper password dict-name ranked-dict)
     (let* ([password-lower (string-downcase password)]
            [password-vec (list->vector (string->list password-lower))]
            [password-length (vector-length password-vec)]
-           [dict-list (cadr (assoc dict-name ranked-dict))]
+           [dict (cadr (assoc dict-name ranked-dict))]
            [out-vec (make-vector (/ (* password-length (add1 password-length)) 2) '())]
            [out-vec-i 0])
       (do ((i 0 (add1 i)))
@@ -59,15 +60,15 @@
         (do ((j i (add1 j)))
             ((= j password-length))
           (let* ([token (list->string (slice password-vec i j))]
-                 [word-pair (assoc token dict-list)])
-            (when word-pair
+                 [rank (hashtable-ref dict token '())])
+            (when (not (null? rank))
               (vector-set! out-vec out-vec-i
                            (create-match-element
-                            "dictionary" i j token (car word-pair)
-                            (cdr word-pair) dict-name #f #f)))
+                            ;; token stored twice as token and matched-word (not sure why)
+                            "dictionary" i j token token rank dict-name #f #f)))
             (set! out-vec-i (add1 out-vec-i)))))
       (vector->list out-vec)))
-
+  
   ;; slice vector and return list
   (define (slice vec lwr upr)
     (let ([indices (map (lambda (x) (+ lwr x)) (iota (add1 (- upr lwr))))])
@@ -87,7 +88,8 @@
   ;; sorts output of match procs (e.g., dictionary-match) by i and then j
   (define (sort-match match)
     ;; i-vals is list of unique and sorted i values
-    (let ([i-vals (sort < (remove-duplicates (map (lambda (x) (cdr (assoc "i" x))) match)))])
+    (let ([i-vals (sort < (remove-duplicates
+                           (map (lambda (x) (cdr (assoc "i" x))) match)))])
       (apply append
              (map (lambda (i)
                     (sort (lambda (x y) (< (cdr (assoc "j" x)) (cdr (assoc "j" y))))
