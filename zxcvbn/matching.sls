@@ -64,7 +64,8 @@
             (when (not (null? rank))
               (vector-set! out-vec out-vec-i
                            (create-match-element
-                            ;; token stored twice as token and matched-word (not sure why)
+                            ;; token stored twice as token and matched-word
+                            ;; see reverse-dictionary-match for why
                             "dictionary" i j token token rank dict-name #f #f)))
             (set! out-vec-i (add1 out-vec-i)))))
       (vector->list out-vec)))
@@ -106,10 +107,29 @@
           [else
            (cons (car ls) (remove-duplicates (cdr ls)))]))
 
-                    
-                          
-    
-      
+  (define (reverse-dictionary-match password ranked-dict)
+    (let* ([password-list (string->list password)]
+           [password-length (length password-list)]
+           [password-reverse (list->string (reverse password-list))]
+           [matches (dictionary-match password-reverse ranked-dict)])
+      (sort-match
+       (map (lambda (match)
+              (map (lambda (match-pair)
+                     (let ([key (car match-pair)]
+                           [val (cdr match-pair)])
+                       (cond [(string=? key "token")
+                              (cons key (list->string (reverse (string->list val))))]
+                             [(string=? key "reversed")
+                              (cons key #t)]
+                             [(string=? key "i")
+                              (cons key (- password-length 1 (cdr (assoc "j" match))))]
+                             [(string=? key "j")
+                              (cons key (- password-length 1 (cdr (assoc "i" match))))]
+                             [else
+                              match-pair])))
+                   match))
+            matches))))
+     
 
   )
 
