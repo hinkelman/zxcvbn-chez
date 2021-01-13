@@ -5,11 +5,7 @@
   (import (chezscheme)
           (wak irregex))
 
-  ;; prepare data and inputs -----------------------------------------------------
-  (include "adjacency-graphs.scm")
-  (include "frequency-lists.scm")
-  
-  (define reference-year (date-year (current-date)))
+  ;; general helper procedures ------------------------------------------------------
 
   (define (build-ranked-dict freq-lists)
     (map (lambda (name)
@@ -21,30 +17,6 @@
                        lst ranks)
              (list name ht)))
          (map car freq-lists)))
-
-  (define ranked-dictionaries (build-ranked-dict frequency-lists))
-
-  (define regexen
-    (list (cons "recent-year" (irregex "19\\d\\d|200\\d|201\\d|202\\d"))))
-  
-  (define l33t-table
-    '(("a" ("4" "@"))
-      ("b" ("8"))
-      ("c" ("(" "{" "[" "<"))
-      ("e" ("3"))
-      ("g" ("6" "9"))
-      ("i" ("1" "!" "|"))
-      ("l" ("1" "|" "7"))
-      ("o" ("0"))
-      ("s" ("$" "5"))
-      ("t" ("+" "7"))
-      ("x" ("%"))
-      ("z" ("2"))))
-
-  (define date-max-year 2050)
-  (define date-min-year 1000)
-
-  ;; general helper procedures ------------------------------------------------------
 
   ;; slice vector and return list
   (define (slice vec lwr upr)
@@ -71,6 +43,35 @@
            (remove-duplicates (cdr ls))]
           [else
            (cons (car ls) (remove-duplicates (cdr ls)))]))
+
+  ;; prepare data and inputs -----------------------------------------------------
+  
+  (include "adjacency-graphs.scm")
+  (include "frequency-lists.scm")
+  
+  (define reference-year (date-year (current-date)))
+  
+  (define ranked-dictionaries (build-ranked-dict frequency-lists))
+
+  (define regexen
+    (list (cons "recent-year" (irregex "19\\d\\d|200\\d|201\\d|202\\d"))))
+  
+  (define l33t-table
+    '((#\a (#\4 #\@))
+      (#\b (#\8))
+      (#\c (#\( #\{ #\[ #\<))
+      (#\e (#\3))
+      (#\g (#\6 #\9))
+      (#\i (#\1 #\! #\|))
+      (#\l (#\1 #\| #\7))
+      (#\o (#\0))
+      (#\s (#\$ #\5))
+      (#\t (#\+ #\7))
+      (#\x (#\%))
+      (#\z (#\2))))
+
+  (define date-max-year 2050)
+  (define date-min-year 1000)
 
   ;; dictionary-match and reverse-dictionary-match ----------------------------------
 
@@ -163,7 +164,31 @@
   ;; simple wrapper around irregex-fold
   ;; see http://synthcode.com/scheme/irregex/
   (define (re-fold re str)
-    (irregex-fold re (lambda (i m s) (cons m s)) '() str (lambda (i s) (reverse s))))   
-  
+    (irregex-fold re (lambda (i m s) (cons m s)) '() str (lambda (i s) (reverse s))))
+
+  ;; l33t-match ----------------------------------------------------------------------
+
+  ;; python version failed to match brackets; maybe error in python version?
+  (define (relevant-l33t-subtable password l33t-table)
+    (let ([password-list (remove-duplicates (string->list password))])
+      (let outer-loop ([lt l33t-table]
+                       [out '()])
+        (if (null? lt)
+            (reverse out)
+            (let ([match-chars (inner-loop (cadar lt) password-list)])
+              (if (null? match-chars)
+                  (outer-loop (cdr lt) out)
+                  (outer-loop (cdr lt) (cons (list (caar lt) match-chars) out))))))))
+
+  (define (inner-loop lst password-list)
+    (let loop ([lst lst]
+               [out '()])
+      (if (null? lst)
+          (reverse out)
+          (if (member (car lst) password-list)
+              (loop (cdr lst) (cons (car lst) out))
+              (loop (cdr lst) out)))))
+
+
   )
 
