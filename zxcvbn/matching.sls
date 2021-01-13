@@ -21,6 +21,9 @@
          (map car freq-lists)))
 
   (define ranked-dictionaries (build-ranked-dict frequency-lists))
+
+  (define regexen
+    (list (cons "recent-year" (irregex "19\\d\\d|200\\d|201\\d|202\\d"))))
   
   (define l33t-table
     '(("a" ("4" "@"))
@@ -41,7 +44,7 @@
 
   (define (dictionary-match password ranked-dict)
     (let ([dict-names (map car ranked-dict)])
-      (sort-match
+     (sort-match
        (apply append
               (map (lambda (dict-name)
                      (filter (lambda (x) (not (null? x)))
@@ -63,10 +66,17 @@
                  [rank (hashtable-ref dict token '())])
             (when (not (null? rank))
               (vector-set! out-vec out-vec-i
-                           (create-match-element
-                            ;; token stored twice as token and matched-word
-                            ;; see reverse-dictionary-match for why
-                            "dictionary" i j token token rank dict-name #f #f)))
+                           (list (cons "pattern" "dictionary")
+                                 (cons "i" i)
+                                 (cons "j" j)
+                                 ;; token stored as token and matched-word
+                                 ;; see reverse-dictionary-match for why
+                                 (cons "token" token)         
+                                 (cons "matched-word" token)  
+                                 (cons "rank" rank)
+                                 (cons "dict-name" dict-name)
+                                 (cons "reversed" #f)
+                                 (cons "l33t" #f))))
             (set! out-vec-i (add1 out-vec-i)))))
       (vector->list out-vec)))
   
@@ -74,17 +84,6 @@
   (define (slice vec lwr upr)
     (let ([indices (map (lambda (x) (+ lwr x)) (iota (add1 (- upr lwr))))])
       (map (lambda (x) (vector-ref vec x)) indices)))
-
-  (define (create-match-element pattern i j token matched-word rank dict-name reversed l33t)
-    (list (cons "pattern" pattern)
-          (cons "i" i)
-          (cons "j" j)
-          (cons "token" token)
-          (cons "matched-word" matched-word)
-          (cons "rank" rank)
-          (cons "dict-name" dict-name)
-          (cons "reversed" reversed)
-          (cons "l33t" l33t)))
 
   ;; sorts output of match procs (e.g., dictionary-match) by i and then j
   (define (sort-match match)
@@ -129,7 +128,34 @@
                               match-pair])))
                    match))
             matches))))
-     
 
+  ;; python version sorts the matches
+  ;; but it doesn't seem necessary here
+  (define (regex-match password regexen)
+    (apply append
+           (map (lambda (regex-pair)
+                  (let* ([regex-matches (re-fold (cdr regex-pair) password)]
+                         [tokens (map irregex-match-substring regex-matches)]
+                         [starts (map (lambda (x)
+                                        (irregex-match-start-index x 0))
+                                      regex-matches)]
+                         [ends (map (lambda (x)
+                                      (irregex-match-end-index x 0))
+                                    regex-matches)])
+                    (map (lambda (regex-match token start end)
+                           (list (cons "pattern" "regex")
+                                 (cons "i" start)
+                                 (cons "j" (sub1 end))
+                                 (cons "token" token)         
+                                 (cons "regex-name" (car regex-pair))
+                                 (cons "regex-match" regex-match)))
+                         regex-matches tokens starts ends)))
+                regexen)))
+
+  ;; simple wrapper around irregex-fold
+  ;; see http://synthcode.com/scheme/irregex/
+  (define (re-fold re str)
+    (irregex-fold re (lambda (i m s) (cons m s)) '() str (lambda (i s) (reverse s))))   
+  
   )
 
