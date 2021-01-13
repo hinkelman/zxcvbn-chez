@@ -5,8 +5,10 @@
   (import (chezscheme)
           (wak irregex))
 
+  ;; prepare data and inputs -----------------------------------------------------
   (include "adjacency-graphs.scm")
   (include "frequency-lists.scm")
+  
   (define reference-year (date-year (current-date)))
 
   (define (build-ranked-dict freq-lists)
@@ -41,6 +43,36 @@
 
   (define date-max-year 2050)
   (define date-min-year 1000)
+
+  ;; general helper procedures ------------------------------------------------------
+
+  ;; slice vector and return list
+  (define (slice vec lwr upr)
+    (let ([indices (map (lambda (x) (+ lwr x)) (iota (add1 (- upr lwr))))])
+      (map (lambda (x) (vector-ref vec x)) indices)))
+
+  ;; sorts output of match procs (e.g., dictionary-match) by i and then j
+  (define (sort-match match)
+    ;; i-vals is list of unique and sorted i values
+    (let ([i-vals (sort < (remove-duplicates
+                           (map (lambda (x) (cdr (assoc "i" x))) match)))])
+      (apply append
+             (map (lambda (i)
+                    (sort (lambda (x y) (< (cdr (assoc "j" x)) (cdr (assoc "j" y))))
+                          (filter (lambda (x) (= i (cdr (assoc "i" x))))
+                                  match)))
+                  i-vals))))
+
+  ;; https://stackoverflow.com/questions/8382296/scheme-remove-duplicated-numbers-from-list
+  (define (remove-duplicates ls)
+    (cond [(null? ls)
+           '()]
+          [(member (car ls) (cdr ls))
+           (remove-duplicates (cdr ls))]
+          [else
+           (cons (car ls) (remove-duplicates (cdr ls)))]))
+
+  ;; dictionary-match and reverse-dictionary-match ----------------------------------
 
   (define (dictionary-match password ranked-dict)
     (let ([dict-names (map car ranked-dict)])
@@ -80,32 +112,6 @@
             (set! out-vec-i (add1 out-vec-i)))))
       (vector->list out-vec)))
   
-  ;; slice vector and return list
-  (define (slice vec lwr upr)
-    (let ([indices (map (lambda (x) (+ lwr x)) (iota (add1 (- upr lwr))))])
-      (map (lambda (x) (vector-ref vec x)) indices)))
-
-  ;; sorts output of match procs (e.g., dictionary-match) by i and then j
-  (define (sort-match match)
-    ;; i-vals is list of unique and sorted i values
-    (let ([i-vals (sort < (remove-duplicates
-                           (map (lambda (x) (cdr (assoc "i" x))) match)))])
-      (apply append
-             (map (lambda (i)
-                    (sort (lambda (x y) (< (cdr (assoc "j" x)) (cdr (assoc "j" y))))
-                          (filter (lambda (x) (= i (cdr (assoc "i" x))))
-                                  match)))
-                  i-vals))))
-
-  ;; https://stackoverflow.com/questions/8382296/scheme-remove-duplicated-numbers-from-list
-  (define (remove-duplicates ls)
-    (cond [(null? ls)
-           '()]
-          [(member (car ls) (cdr ls))
-           (remove-duplicates (cdr ls))]
-          [else
-           (cons (car ls) (remove-duplicates (cdr ls)))]))
-
   (define (reverse-dictionary-match password ranked-dict)
     (let* ([password-list (string->list password)]
            [password-length (length password-list)]
@@ -129,6 +135,8 @@
                    match))
             matches))))
 
+  ;; regex-match ----------------------------------------------------------------------
+  
   ;; python version sorts the matches
   ;; but it doesn't seem necessary here
   (define (regex-match password regexen)
