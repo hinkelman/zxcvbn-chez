@@ -168,7 +168,6 @@
 
   ;; l33t-match ----------------------------------------------------------------------
 
-  ;; python version failed to match brackets; maybe error in python version?
   (define (relevant-l33t-subtable password l33t-table)
     (let ([password-list (remove-duplicates (string->list password))])
       (let outer-loop ([lt l33t-table]
