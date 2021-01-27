@@ -52,9 +52,6 @@
   
   (define ranked-dictionaries (build-ranked-dict frequency-lists))
 
-  (define regexen
-    (list (cons "recent-year" (irregex "19\\d\\d|200\\d|201\\d|202\\d"))))
-  
   (define l33t-table
     '((#\a (#\4 #\@))
       (#\b (#\8))
@@ -68,9 +65,16 @@
       (#\t (#\+ #\7))
       (#\x (#\%))
       (#\z (#\2))))
+    
+  (define shifted-rx
+    (irregex "[~!@#$%^&*()_+QWERTYUIOP{}|ASDFGHJKL:\"ZXCVBNM<>?]"))
 
+  (define regexen
+    (list (cons "recent-year" (irregex "19\\d\\d|200\\d|201\\d|202\\d"))))
+  
   (define date-max-year 2050)
   (define date-min-year 1000)
+  (define max-delta 5)
 
   ;; dictionary-match and reverse-dictionary-match ----------------------------------
 
@@ -310,7 +314,7 @@
      (list (cons "sub" (list sub))
            (cons "sub-display" (create-sub-display sub)))))
   
-  ;; repeat-match ------------------------------------------------------------------
+  ;; date-match ------------------------------------------------------------------
 
   
 
