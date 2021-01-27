@@ -35,7 +35,6 @@
                                   match)))
                   i-vals))))
 
-  ;; https://stackoverflow.com/questions/8382296/scheme-remove-duplicated-numbers-from-list
   (define (remove-duplicates ls)
     (cond [(null? ls)
            '()]
@@ -43,6 +42,17 @@
            (remove-duplicates (cdr ls))]
           [else
            (cons (car ls) (remove-duplicates (cdr ls)))]))
+
+  (define (cartesian-product . ls)
+    (fold-right product-of-two '(()) ls))
+
+  (define (product-of-two ls1 ls2)
+    (apply append
+           (map (lambda (x)
+                  (map (lambda (y)
+                         (cons x y))
+                       ls2))
+                ls1)))
 
   ;; prepare data and inputs -----------------------------------------------------
   
@@ -188,6 +198,56 @@
               (loop (cdr lst) (cons (car lst) out))
               (loop (cdr lst) out)))))
 
+  (define (enumerate-l33t-subs subtable)
+    (let* ([fliptable (flip-subtable subtable)]
+           [l33t-subs (apply cartesian-product fliptable)])
+      (remove-duplicates
+       (sort-l33t-subs
+        (apply append
+               (map (lambda (sub)
+                      (let ([keys (map car sub)])
+                        (if (= (length keys) (length (remove-duplicates keys)))
+                            (list sub)
+                            (dedup sub keys))))
+                    l33t-subs))))))
+    
+  ;; better description is flip and expand where necessary  
+  (define (flip-subtable subtable)
+    (map (lambda (pair)
+           (map (lambda (char)
+                  (cons char (car pair)))
+                (cadr pair)))
+         subtable))
 
+  ;; sort the pairs within a sub-list for remove-duplicates to work correctly
+  (define (sort-l33t-subs l33t-subs)
+    (map (lambda (sub)
+           (sort (lambda (x y) (char<? (car x) (car y))) sub))
+         l33t-subs))
+                  
+  ;; objective of dedup is to convert, for example,
+  ;; ((#\1 . #\i) (#\1 . #\l) (#\7 . #\t)) into
+  ;; (((#\1 . #\l) (#\7 . #\t)) ((#\1 . #\i) (#\7 . #\t)))
+  (define (dedup sub keys)
+    (let loop ([iter-sub sub]
+               [iter-keys keys]
+               [out '()])
+      (if (null? iter-sub)
+          out
+          (if (duplicate-key? (car iter-keys) keys)
+              (loop (cdr iter-sub)
+                    (cdr iter-keys)
+                    (cons (filter-sub sub (car iter-sub)) out))
+              (loop (cdr iter-sub) (cdr iter-keys) out)))))
+
+  (define (duplicate-key? key keys)
+    (> (length (filter (lambda (x) (char=? key x)) keys)) 1))
+
+  ;; filter out all pairs (including focal-pair) with same key as focal-pair
+  ;; cons focal-pair back on to list of any remaining pairs
+  (define (filter-sub sub focal-pair)
+    (cons focal-pair
+          (filter (lambda (pair) (not (char=? (car focal-pair) (car pair)))) sub)))
+ 
   )
 
